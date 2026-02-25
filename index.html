@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>UFAC.bo - Catálogo de Ofertas Académicas</title>
+    <meta name="description" content="Unidad de Formación Académica Continua. Explora diplomados y cursos de especialización profesional.">
+    <meta property="og:title" content="UFAC.bo | Formación Continua">
+    <meta property="og:description" content="Cursos y diplomados de alto nivel académico. ¡Potencia tu futuro hoy!">
+    <meta property="og:image" content="https://efoaddprubryweeuxaux.supabase.co/storage/v1/object/public/imagenes/preview-social.jpg">
+    <link rel="icon" type="image/png" href="https://efoaddprubryweeuxaux.supabase.co/storage/v1/object/public/imagenes/favicon.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        .premium-card { border-radius: 2.5rem; transition: all 0.4s ease; background: white; }
+        .premium-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50" 
+    x-data="{ 
+        adminMode: false, editando: false, modalAbierto: false, 
+        passInput: '', cursos: [], loading: true, subiendo: false, busqueda: '',
+        form: { id: null, titulo: '', categoria: '', descripcion: '', precio: '', area: '', nombre_imagen: '', numero_contacto: '', imagen_detalle: '' },
+        cursoDetalle: null,
+
+        async init() {
+            const URL = 'https://efoaddprubryweeuxaux.supabase.co'; 
+            const KEY = 'sb_publishable_ohTbTO2uHiKNIyKT2jiV5Q_x23rPc9v'; 
+            window.client = supabase.createClient(URL, KEY);
+            this.load();
+        },
+
+        async load() {
+            this.loading = true;
+            const { data } = await window.client.from('cursos').select('*').order('id', { ascending: false });
+            this.cursos = data || [];
+            this.loading = false;
+        },
+
+        async upload(e, targetField) {
+            const file = e.target.files[0];
+            if (!file) return;
+            this.subiendo = true;
+            const path = `portadas/${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+            const { data } = await window.client.storage.from('imagenes').upload(path, file);
+            if (data) {
+                const { data: res } = window.client.storage.from('imagenes').getPublicUrl(path);
+                this.form[targetField] = res.publicUrl;
+                alert('Archivo listo ✅');
+            }
+            this.subiendo = false;
+        },
+
+        async save() {
+            if(!this.form.nombre_imagen) return alert('Debes subir al menos la imagen de portada');
+            try {
+                let res;
+                if (this.editando) {
+                    res = await window.client.from('cursos').update(this.form).eq('id', this.form.id);
+                } else {
+                    const { id, ...nuevo } = this.form;
+                    res = await window.client.from('cursos').insert([nuevo]);
+                }
+                if(res.error) throw res.error;
+                alert('✨ Operación exitosa');
+                this.reset(); this.load();
+            } catch (err) { alert('Error: ' + err.message); }
+        },
+
+        async eliminar(id) {
+            if (confirm('¿Eliminar definitivamente?')) {
+                const { error } = await window.client.from('cursos').delete().eq('id', id);
+                if (!error) this.load();
+            }
+        },
+
+        abrirDetalles(curso) { this.cursoDetalle = curso; this.modalAbierto = true; document.body.style.overflow = 'hidden'; },
+        cerrarDetalles() { this.modalAbierto = false; document.body.style.overflow = 'auto'; },
+        reset() { this.form = { id: null, titulo: '', categoria: '', descripcion: '', precio: '', area: '', nombre_imagen: '', numero_contacto: '', imagen_detalle: '' }; this.editando = false; }
+    }">
+
+    <nav class="bg-white py-4 px-10 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-3 cursor-pointer" @dblclick="adminMode = !adminMode">
+            <h1 class="text-2xl font-black text-blue-700 uppercase tracking-tighter">UFAC<span class="text-slate-400">.bo</span></h1>
+        </div>
+        <div x-show="adminMode" class="flex gap-2">
+            <input x-model="passInput" type="password" placeholder="Key Admin" class="bg-slate-100 rounded-xl px-4 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+    </nav>
+
+    <section x-show="adminMode && passInput === 'AlciUFAC2026'" class="max-w-5xl mx-auto my-6 p-10 bg-slate-900 rounded-[3rem] text-white shadow-2xl">
+        <h2 class="text-2xl font-bold mb-8" x-text="editando ? '📝 Editando Programa' : '🚀 Nuevo Programa'"></h2>
+        <div class="grid md:grid-cols-2 gap-6">
+            <input x-model="form.titulo" type="text" placeholder="Título" class="p-4 rounded-2xl bg-slate-800 border-none outline-none">
+            <input x-model="form.area" type="text" placeholder="ÁREA (Ej: CIENCIAS QUÍMICAS)" class="p-4 rounded-2xl bg-slate-800 border-none outline-none">
+            <input x-model="form.precio" type="text" placeholder="Precio Bs" class="p-4 rounded-2xl bg-slate-800 border-none outline-none">
+            <input x-model="form.numero_contacto" type="text" placeholder="WhatsApp (591...)" class="p-4 rounded-2xl bg-slate-800 border-none outline-none">
+            
+            <div class="bg-slate-800 p-4 rounded-2xl border-2 border-dashed border-slate-700">
+                <label class="text-[10px] block mb-2 text-slate-400">IMAGEN PORTADA</label>
+                <input type="file" @change="upload($event, 'nombre_imagen')" class="text-xs">
+            </div>
+            <div class="bg-slate-800 p-4 rounded-2xl border-2 border-dashed border-slate-700">
+                <label class="text-[10px] block mb-2 text-slate-400">IMAGEN DETALLE (OPCIONAL)</label>
+                <input type="file" @change="upload($event, 'imagen_detalle')" class="text-xs">
+            </div>
+            
+            <textarea x-model="form.descripcion" placeholder="Descripción amplia..." class="md:col-span-2 p-4 rounded-2xl bg-slate-800 h-24 text-white border-none"></textarea>
+        </div>
+        <button @click="save" :disabled="subiendo" class="w-full mt-8 py-5 rounded-2xl font-black text-xl bg-blue-600 hover:bg-blue-700 shadow-xl transition-all active:scale-95" x-text="subiendo ? 'Cargando archivos...' : 'Guardar y Publicar'"></button>
+    </section>
+
+    <header class="py-24 px-8 text-center bg-[#2d32a4] text-white relative overflow-hidden">
+        <h2 class="text-5xl md:text-7xl font-black mb-8 tracking-tighter uppercase leading-tight">Catálogo de Ofertas Académicas</h2>
+        <div class="max-w-xl mx-auto relative group">
+            <input type="text" x-model="busqueda" placeholder="Buscar curso..." class="w-full py-5 px-10 rounded-full bg-white text-slate-800 shadow-2xl focus:outline-none text-xl font-medium">
+            <span class="absolute right-8 top-5 text-2xl">🔍</span>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-20 px-8">
+        <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            <template x-for="curso in cursos.filter(c => c.titulo.toLowerCase().includes(busqueda.toLowerCase()))" :key="curso.id">
+                <div class="premium-card overflow-hidden shadow-sm border border-slate-100 flex flex-col relative group">
+                    <div x-show="adminMode && passInput === 'AlciUFAC2026'" class="absolute top-5 right-5 z-20 flex gap-2">
+                        <button @click="editando=true; form={...curso}; window.scrollTo({top:0, behavior:'smooth'})" class="bg-white/95 p-3 rounded-full shadow hover:bg-orange-500 hover:text-white transition">✏️</button>
+                        <button @click="eliminar(curso.id)" class="bg-white/95 p-3 rounded-full shadow hover:bg-red-500 hover:text-white transition">🗑️</button>
+                    </div>
+
+                    <div class="relative h-64 overflow-hidden bg-slate-100">
+                        <img :src="curso.nombre_imagen" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute top-6 left-6">
+                            <span class="bg-white/95 text-blue-700 text-[10px] font-black px-4 py-2 rounded-full uppercase shadow-sm tracking-widest" x-text="curso.area"></span>
+                        </div>
+                    </div>
+
+                    <div class="p-10 flex flex-col flex-grow text-left">
+                        <h4 class="text-2xl font-bold text-slate-800 leading-tight mb-8" x-text="curso.titulo"></h4>
+                        <div class="mt-auto flex justify-between items-center pt-8 border-t border-slate-50">
+                            <p class="text-4xl font-black text-slate-900" x-text="curso.precio + ' Bs'"></p>
+                            <button @click="abrirDetalles(curso)" class="text-blue-600 font-bold hover:text-blue-800 transition">Ver más</button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </main>
+
+    <div x-show="modalAbierto" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div @click="cerrarDetalles()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+        <div x-show="modalAbierto" x-transition class="bg-white w-full max-w-4xl rounded-[3rem] overflow-hidden shadow-2xl relative z-10 flex flex-col md:flex-row max-h-[90vh]">
+            <div class="w-full md:w-1/2 h-64 md:h-auto bg-slate-200">
+                <img :src="cursoDetalle?.imagen_detalle || cursoDetalle?.nombre_imagen" class="w-full h-full object-cover">
+            </div>
+            <div class="w-full md:w-1/2 p-10 flex flex-col overflow-y-auto">
+                <button @click="cerrarDetalles()" class="absolute top-6 right-8 text-slate-400 hover:text-slate-900 text-2xl font-bold">×</button>
+                <span class="text-blue-600 font-black text-[10px] uppercase tracking-widest mb-4" x-text="cursoDetalle?.area"></span>
+                <h3 class="text-3xl font-black text-slate-900 leading-tight mb-6" x-text="cursoDetalle?.titulo"></h3>
+                <p class="text-slate-600 leading-relaxed mb-8 flex-grow" x-text="cursoDetalle?.descripcion"></p>
+                <div class="border-t pt-8">
+                    <p class="text-4xl font-black text-slate-900 mb-6" x-text="cursoDetalle?.precio + ' Bs'"></p>
+                    <a :href="'https://wa.me/' + (cursoDetalle?.numero_contacto || '59179591057') + '?text=Hola! Estoy interesado en el curso: ' + cursoDetalle?.titulo" 
+                       target="_blank" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-5 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-xl shadow-green-100">
+                        Contactar por WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
