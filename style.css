@@ -1,0 +1,48 @@
+/* FUENTE Y RESET */
+body { 
+    font-family: 'Inter', sans-serif; 
+    overflow-x: hidden;
+}
+
+/* FONDO DINÁMICO ANIMADO */
+@keyframes gradient-animation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.bg-dinamico {
+    background: linear-gradient(-45deg, #f8fafc, #e2e8f0, #dbeafe, #f1f5f9);
+    background-size: 400% 400%;
+    animation: gradient-animation 15s ease infinite;
+    min-height: 100vh;
+}
+
+/* TARJETAS EFECTO CRISTAL (Glassmorphism) */
+.premium-card { 
+    border-radius: 2.5rem; 
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.premium-card:hover { 
+    transform: translateY(-12px); 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1); 
+    background: rgba(255, 255, 255, 1) !important;
+}
+
+/* UTILIDADES */
+[x-cloak] { display: none !important; }
+
+/* ANIMACIÓN PULSO WHATSAPP */
+@keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+.btn-whatsapp-pulse {
+    animation: pulse-green 2s infinite;
+}

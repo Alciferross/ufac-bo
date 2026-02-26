@@ -4,26 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>UFAC.bo - Catálogo de Ofertas Académicas</title>
-    <meta name="description" content="Unidad de Formación Académica Continua. Explora diplomados y cursos de especialización profesional.">
+    <title>UFAC.bo - UNIDAD DE FORMACIÓN ACADÉMICA CONTINUA</title>
+    <meta name="description" content="Unidad de Formación Académica Continua. Explora nuestros cursos de especialización.">
     <meta property="og:title" content="UFAC.bo | Formación Continua">
-    <meta property="og:description" content="Cursos y diplomados de alto nivel académico. ¡Potencia tu futuro hoy!">
-    <meta property="og:image" content="https://efoaddprubryweeuxaux.supabase.co/storage/v1/object/public/imagenes/preview-social.jpg">
-    <link rel="icon" type="image/png" href="https://efoaddprubryweeuxaux.supabase.co/storage/v1/object/public/imagenes/favicon.png">
+    <meta property="og:image" content="https://efoaddprubryweeuxaux.supabase.co/storage/v1/object/public/imagenes/portadas/logo_ufac.jpg">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     
-    <style> 
-        body { font-family: 'Inter', sans-serif; } 
-        .premium-card { border-radius: 2.5rem; transition: all 0.4s ease; background: white; }
-        .premium-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
-        [x-cloak] { display: none !important; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-50" 
+<body class="bg-dinamico" 
     x-data="{ 
         adminMode: false, editando: false, modalAbierto: false, 
         passInput: '', cursos: [], loading: true, subiendo: false, busqueda: '',
@@ -79,7 +72,7 @@
         },
 
         async eliminar(id) {
-            if (confirm('¿Eliminar definitivamente?')) {
+            if (confirm('¿Eliminar programa?')) {
                 const { error } = await window.client.from('cursos').delete().eq('id', id);
                 if (!error) this.load();
             }
@@ -90,26 +83,29 @@
         reset() { this.form = { id: null, titulo: '', categoria: '', descripcion: '', precio: '', area: '', nombre_imagen: '', numero_contacto: '', imagen_detalle: '' }; this.editando = false; }
     }">
 
-    <nav class="bg-white py-4 px-10 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+    <nav class="bg-white/90 backdrop-blur-md py-4 px-10 flex justify-between items-center sticky top-0 z-50 shadow-sm">
         <div class="flex items-center gap-3 cursor-pointer" @dblclick="adminMode = !adminMode">
-            <h1 class="text-2xl font-black text-blue-700 uppercase tracking-tighter">UFAC<span class="text-slate-400">.bo</span></h1>
+            <h1 class="text-2xl font-black text-blue-700 uppercase tracking-tighter italic">UFAC<span class="text-slate-400">.bo</span></h1>
         </div>
-        <div x-show="adminMode" class="flex gap-2">
-            <input x-model="passInput" type="password" placeholder="Key Admin" class="bg-slate-100 rounded-xl px-4 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500">
+        <div x-show="adminMode" class="flex gap-2 animate-pulse">
+            <input x-model="passInput" type="password" placeholder="Admin Key" class="bg-slate-100 rounded-xl px-4 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500">
         </div>
-
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Postgrado UPEA</span>
     </nav>
 
-    <section x-show="adminMode && passInput === 'AlciUFAC2026'" class="max-w-5xl mx-auto my-6 p-10 bg-slate-900 rounded-[3rem] text-white shadow-2xl">
-        <h2 class="text-2xl font-bold mb-8" x-text="editando ? '📝 Editando Programa' : '🚀 Nuevo Programa'"></h2>
+    <section x-show="adminMode && passInput === 'AlciUFAC2026'" class="max-w-5xl mx-auto my-6 p-10 bg-slate-900 rounded-[3rem] text-white shadow-2xl transition-all">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold" x-text="editando ? '📝 Editando' : '🚀 Nuevo Programa'"></h2>
+            <button @click="reset()" class="text-xs text-slate-400 hover:text-white uppercase">Limpiar formulario</button>
+        </div>
         <div class="grid md:grid-cols-2 gap-6">
-            <input x-model="form.titulo" type="text" placeholder="Título" class="p-4 rounded-2xl bg-slate-800 border-none outline-none">
-            <input x-model="form.area" type="text" placeholder="ÁREA (Ej: CIENCIAS QUÍMICAS)" class="p-4 rounded-2xl bg-slate-800 border-none outline-none">
-            <input x-model="form.precio" type="text" placeholder="Precio Bs" class="p-4 rounded-2xl bg-slate-800 border-none outline-none">
-            <input x-model="form.numero_contacto" type="text" placeholder="WhatsApp (591...)" class="p-4 rounded-2xl bg-slate-800 border-none outline-none">
+            <input x-model="form.titulo" type="text" placeholder="Título del Curso" class="p-4 rounded-2xl bg-slate-800 border-none">
+            <input x-model="form.area" type="text" placeholder="Área (Ej: Educación)" class="p-4 rounded-2xl bg-slate-800 border-none">
+            <input x-model="form.precio" type="text" placeholder="Precio Bs" class="p-4 rounded-2xl bg-slate-800 border-none">
+            <input x-model="form.numero_contacto" type="text" placeholder="WhatsApp (Ej: 59179591057)" class="p-4 rounded-2xl bg-slate-800 border-none">
             
             <div class="bg-slate-800 p-4 rounded-2xl border-2 border-dashed border-slate-700">
-                <label class="text-[10px] block mb-2 text-slate-400">IMAGEN PORTADA</label>
+                <label class="text-[10px] block mb-2 text-slate-400">PORTADA PRINCIPAL</label>
                 <input type="file" @change="upload($event, 'nombre_imagen')" class="text-xs">
             </div>
             <div class="bg-slate-800 p-4 rounded-2xl border-2 border-dashed border-slate-700">
@@ -117,40 +113,42 @@
                 <input type="file" @change="upload($event, 'imagen_detalle')" class="text-xs">
             </div>
             
-            <textarea x-model="form.descripcion" placeholder="Descripción amplia..." class="md:col-span-2 p-4 rounded-2xl bg-slate-800 h-24 text-white border-none"></textarea>
+            <textarea x-model="form.descripcion" placeholder="Descripción del programa..." class="md:col-span-2 p-4 rounded-2xl bg-slate-800 h-24 text-white border-none"></textarea>
         </div>
-        <button @click="save" :disabled="subiendo" class="w-full mt-8 py-5 rounded-2xl font-black text-xl bg-blue-600 hover:bg-blue-700 shadow-xl transition-all active:scale-95" x-text="subiendo ? 'Cargando archivos...' : 'Guardar y Publicar'"></button>
+        <button @click="save" :disabled="subiendo" class="w-full mt-8 py-5 rounded-2xl font-black text-xl bg-blue-600 hover:bg-blue-700 shadow-xl" x-text="subiendo ? 'Subiendo archivos...' : 'Guardar Cambios'"></button>
     </section>
 
-    <header class="py-24 px-8 text-center bg-[#2d32a4] text-white relative overflow-hidden">
-        <h2 class="text-5xl md:text-7xl font-black mb-8 tracking-tighter uppercase leading-tight">Catálogo de Ofertas Académicas</h2>
+    <header class="py-24 px-8 text-center bg-[#2d32a4] text-white relative overflow-hidden mb-12">
+        <h2 class="text-5xl md:text-7xl font-black mb-8 tracking-tighter uppercase leading-tight">Ofertas Académicas</h2>
         <div class="max-w-xl mx-auto relative group">
             <input type="text" x-model="busqueda" placeholder="Buscar curso..." class="w-full py-5 px-10 rounded-full bg-white text-slate-800 shadow-2xl focus:outline-none text-xl font-medium">
             <span class="absolute right-8 top-5 text-2xl">🔍</span>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto py-20 px-8">
+    <main class="max-w-7xl mx-auto py-10 px-8 min-h-[50vh]">
+        <div x-show="loading" class="text-center py-20 text-slate-400 animate-pulse">Cargando programas...</div>
+        
         <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             <template x-for="curso in cursos.filter(c => c.titulo.toLowerCase().includes(busqueda.toLowerCase()))" :key="curso.id">
-                <div class="premium-card overflow-hidden shadow-sm border border-slate-100 flex flex-col relative group">
+                <div class="premium-card overflow-hidden flex flex-col relative group">
                     <div x-show="adminMode && passInput === 'AlciUFAC2026'" class="absolute top-5 right-5 z-20 flex gap-2">
-                        <button @click="editando=true; form={...curso}; window.scrollTo({top:0, behavior:'smooth'})" class="bg-white/95 p-3 rounded-full shadow hover:bg-orange-500 hover:text-white transition">✏️</button>
-                        <button @click="eliminar(curso.id)" class="bg-white/95 p-3 rounded-full shadow hover:bg-red-500 hover:text-white transition">🗑️</button>
+                        <button @click="editando=true; form={...curso}; window.scrollTo({top:0, behavior:'smooth'})" class="bg-white p-3 rounded-full shadow-lg hover:bg-blue-600 hover:text-white transition">✏️</button>
+                        <button @click="eliminar(curso.id)" class="bg-white p-3 rounded-full shadow-lg hover:bg-red-600 hover:text-white transition">🗑️</button>
                     </div>
 
-                    <div class="relative h-64 overflow-hidden bg-slate-100">
+                    <div class="relative h-64 overflow-hidden bg-slate-200">
                         <img :src="curso.nombre_imagen" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                         <div class="absolute top-6 left-6">
-                            <span class="bg-white/95 text-blue-700 text-[10px] font-black px-4 py-2 rounded-full uppercase shadow-sm tracking-widest" x-text="curso.area"></span>
+                            <span class="bg-white/95 text-blue-700 text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest" x-text="curso.area"></span>
                         </div>
                     </div>
 
-                    <div class="p-10 flex flex-col flex-grow text-left">
+                    <div class="p-10 flex flex-col flex-grow">
                         <h4 class="text-2xl font-bold text-slate-800 leading-tight mb-8" x-text="curso.titulo"></h4>
-                        <div class="mt-auto flex justify-between items-center pt-8 border-t border-slate-50">
+                        <div class="mt-auto flex justify-between items-center pt-8 border-t border-slate-100">
                             <p class="text-4xl font-black text-slate-900" x-text="curso.precio + ' Bs'"></p>
-                            <button @click="abrirDetalles(curso)" class="text-blue-600 font-bold hover:text-blue-800 transition">Ver más</button>
+                            <button @click="abrirDetalles(curso)" class="text-blue-600 font-bold hover:underline">Ver más</button>
                         </div>
                     </div>
                 </div>
@@ -158,86 +156,60 @@
         </div>
     </main>
 
+    <footer class="bg-slate-900 text-white pt-20 pb-10 px-8 mt-20">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 border-b border-slate-800 pb-12 text-left">
+            <div class="space-y-6">
+                <h2 class="text-3xl font-black text-blue-500">UFAC<span class="text-white">.bo</span></h2>
+                <p class="text-slate-400">Unidad de Formación Académica Continua vinculada a la UPEA. Comprometidos con la excelencia y la especialización de los profesionales en Bolivia.</p>
+                <div class="flex gap-4">
+                    <a href="https://www.facebook.com/share/17xYUiVpsG/" target="_blank" class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all shadow-lg">
+                        <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/ufac.oficial?utm_source=qr&igsh=a2EyZW04bTY2dDU=" target="_blank" class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-pink-600 transition-all shadow-lg">
+                        <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.266.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.267-.07-1.647-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c.796 0 1.441-.645 1.441-1.44s-.645-1.44-1.441-1.44-1.44.645-1.44 1.44.645 1.44 1.44 1.44z"/></svg>
+                    </a>
+                    <a href="https://www.tiktok.com/@ufac.oficial?_r=1&_t=ZS-94DifCMMV0f" target="_blank" class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-black hover:ring-2 hover:ring-pink-500 transition-all shadow-lg text-white">
+                        <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M12.525.02c1.31 0 2.591.215 3.794.608V4.697c-.682-.192-1.397-.289-2.126-.289-2.458 0-4.449 1.846-4.449 4.124v3.193h4.449v4.212h-4.449v7.461c0 2.122-1.856 3.842-4.143 3.842-2.288 0-4.144-1.72-4.144-3.842V9.332C1.457 4.185 5.612.02 10.74.02h1.785zM22.508 4.841c-1.353 0-2.536-.615-3.328-1.572-.34-.41-.613-.883-.807-1.398h-3.951v11.854c0 .883-.715 1.6-1.595 1.6-.88 0-1.594-.717-1.594-1.6V9.332h3.191V5.12h-7.336v11.812c0 2.872 2.33 5.201 5.201 5.201 2.871 0 5.201-2.329 5.201-5.201V6.632c1.018.898 2.372 1.441 3.856 1.441V4.841h1.162z"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div class="space-y-6">
+            </div>
+            <div class="space-y-6">
+                <h4 class="font-bold">Ubicación</h4>
+                <p class="text-slate-400">📍 Av. Juan Pablo II, Edificio Postgrado UPEA, El Alto.</p>
+                <p class="text-slate-400">⏰ Lun - Vie: 08:30 - 12:30 y 14:00 - 17:00</p>
+                <p class="text-blue-400 font-bold">📞 +591 79591057</p>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto pt-10 flex justify-between items-center text-slate-500 text-xs">
+            <p>© 2026 UFAC.bo - Todos los derechos reservados.</p>
+            <p>Desarrollado por <span class="text-white">Alciferross</span></p>
+        </div>
+    </footer>
+
     <div x-show="modalAbierto" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center p-4">
         <div @click="cerrarDetalles()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
         <div x-show="modalAbierto" x-transition class="bg-white w-full max-w-4xl rounded-[3rem] overflow-hidden shadow-2xl relative z-10 flex flex-col md:flex-row max-h-[90vh]">
             <div class="w-full md:w-1/2 h-64 md:h-auto bg-slate-200">
                 <img :src="cursoDetalle?.imagen_detalle || cursoDetalle?.nombre_imagen" class="w-full h-full object-contain p-4">
             </div>
-            <div class="w-full md:w-1/2 p-10 flex flex-col overflow-y-auto">
-                <button @click="cerrarDetalles()" class="absolute top-6 right-8 text-slate-400 hover:text-slate-900 text-2xl font-bold">×</button>
-                <span class="text-blue-600 font-black text-[10px] uppercase tracking-widest mb-4" x-text="cursoDetalle?.area"></span>
+            <div class="p-10 w-full md:w-1/2 flex flex-col overflow-y-auto text-left">
+                <button @click="cerrarDetalles()" class="absolute top-6 right-8 text-slate-400 hover:text-black text-2xl">×</button>
+                <span class="text-blue-600 font-black text-[10px] uppercase mb-4" x-text="cursoDetalle?.area"></span>
                 <h3 class="text-3xl font-black text-slate-900 leading-tight mb-6" x-text="cursoDetalle?.titulo"></h3>
-                <p class="text-slate-600 leading-relaxed mb-8 flex-grow" x-text="cursoDetalle?.descripcion"></p>
-                <div class="border-t pt-8">
-                    <p class="text-4xl font-black text-slate-900 mb-6" x-text="cursoDetalle?.precio + ' Bs'"></p>
-                    <a :href="'https://wa.me/' + (cursoDetalle?.numero_contacto || '59179591057') + '?text=Hola! Estoy interesado en el curso: ' + cursoDetalle?.titulo" 
-                       target="_blank" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-5 rounded-2xl font-black text-lg transition-all active:scale-95 shadow-xl shadow-green-100">
-                        Contactar por WhatsApp
-                    </a>
+                <p class="text-slate-600 mb-8" x-text="cursoDetalle?.descripcion"></p>
+                <div class="mt-auto pt-8 border-t">
+                    <p class="text-4xl font-black mb-6" x-text="cursoDetalle?.precio + ' Bs'"></p>
+                    <a :href="'https://wa.me/' + (cursoDetalle?.numero_contacto || '59179591057') + '?text=Info sobre: ' + cursoDetalle?.titulo" target="_blank" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-5 rounded-2xl font-bold transition-all">Consultar WhatsApp</a>
                 </div>
             </div>
         </div>
     </div>
-    <footer class="bg-slate-900 text-white pt-20 pb-10 px-8">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 border-b border-slate-800 pb-12">
-            
-            <div class="space-y-6">
-                <h2 class="text-3xl font-black tracking-tighter text-blue-500">UFAC<span class="text-white">.bo</span></h2>
-                <p class="text-slate-400 leading-relaxed">
-                    Unidad de Formación Académica Continua vinculada a la UPEA. 
-                    Comprometidos con la excelencia y la especialización de los profesionales en Bolivia.
-                </p>
-                <div class="flex gap-4">
-                    <a href="https://www.facebook.com/share/17xYUiVpsG/" target="_blank" 
-                    class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-[#1877F2] hover:-translate-y-1 transition-all shadow-lg" 
-                    title="Facebook UFAC">
-                        <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                    </a>
 
-                    <a href="https://www.instagram.com/ufac.oficial?utm_source=qr&igsh=a2EyZW04bTY2dDU=" target="_blank" 
-                    class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-[#E4405F] hover:-translate-y-1 transition-all shadow-lg" 
-                    title="Instagram UFAC">
-                        <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.266.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.267-.07-1.647-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c.796 0 1.441-.645 1.441-1.44s-.645-1.44-1.441-1.44-1.44.645-1.44 1.44.645 1.44 1.44 1.44z"/></svg>
-                    </a>
-                    <a href="https://www.tiktok.com/@ufac.oficial?_r=1&_t=ZS-94DifCMMV0f" target="_blank" 
-                        class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-black hover:ring-2 hover:ring-[#ff0050] hover:-translate-y-1 transition-all shadow-lg" 
-                        title="TikTok UFAC">
-                            <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24">
-                                <path d="M12.525.02c1.31 0 2.591.215 3.794.608V4.697c-.682-.192-1.397-.289-2.126-.289-2.458 0-4.449 1.846-4.449 4.124v3.193h4.449v4.212h-4.449v7.461c0 2.122-1.856 3.842-4.143 3.842-2.288 0-4.144-1.72-4.144-3.842V9.332C1.457 4.185 5.612.02 10.74.02h1.785zM22.508 4.841c-1.353 0-2.536-.615-3.328-1.572-.34-.41-.613-.883-.807-1.398h-3.951v11.854c0 .883-.715 1.6-1.595 1.6-.88 0-1.594-.717-1.594-1.6V9.332h3.191V5.12h-7.336v11.812c0 2.872 2.33 5.201 5.201 5.201 2.871 0 5.201-2.329 5.201-5.201V6.632c1.018.898 2.372 1.441 3.856 1.441V4.841h1.162z"/>
-                            </svg>
-                    </a>
+    <a href="https://wa.me/59179591057" target="_blank" class="fixed bottom-8 right-8 z-[100] btn-whatsapp-pulse bg-green-500 text-white p-5 rounded-full shadow-2xl hover:scale-110 transition-transform">
+        <svg class="w-8 h-8 fill-white" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.588-5.946 0-6.556 5.332-11.888 11.888-11.888 3.176 0 6.161 1.237 8.404 3.48s3.48 5.228 3.48 8.404c0 6.556-5.332 11.888-11.888 11.888-2.016 0-3.992-.511-5.741-1.482l-6.242 1.637zm6.26-3.824c1.621.963 3.328 1.47 5.093 1.47 5.388 0 9.773-4.385 9.773-9.773 0-2.61-1.016-5.063-2.86-6.908s-4.298-2.86-6.908-2.86c-5.388 0-9.773 4.385-9.773 9.773 0 1.755.473 3.458 1.364 4.953l-1.448 5.295 5.419-1.421z"/></svg>
+    </a>
 
-            </div>
-            </div>
-
-            <div class="space-y-6">
-                
-            </div>
-
-            <div class="space-y-6">
-                <h4 class="text-lg font-bold">Ubicación</h4>
-                <div class="text-slate-400 space-y-4">
-                    <p class="flex items-start gap-3">
-                        <span>📍</span> 
-                        <span>Av. Juan Pablo II, Edificio Postgrado UPEA, El Alto - Bolivia.</span>
-                    </p>
-                    <p class="flex items-center gap-3">
-                        <span>⏰</span> 
-                        <span>Lun - Vie: 08:30 - 12:30 y 14:00 - 17:00</span>
-                    </p>
-                    <p class="flex items-center gap-3 text-blue-400 font-bold">
-                        <span>📞</span> 
-                        <span>+591 79591057</span>
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="max-w-7xl mx-auto pt-10 flex flex-col md:flex-row justify-between items-center text-slate-500 text-sm">
-            <p>© 2026 UFAC.bo - Todos los derechos reservados.</p>
-            <p class="mt-4 md:mt-0 font-medium">Desarrollado con orgullo por <span class="text-slate-300">Alciferross</span></p>
-        </div>
-    </footer>
 </body>
 </html>
