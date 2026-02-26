@@ -59,19 +59,23 @@
         },
 
         async save() {
-            if(!this.form.nombre_imagen) return alert('Debes subir al menos la imagen de portada');
-            try {
+                 if(!this.form.nombre_imagen) return alert('Debes subir al menos la imagen de portada');
+                try {
                 let res;
+                 // 1. Separamos el 'id' del resto del formulario
+                const { id, ...datosAActualizar } = this.form;
+ 
                 if (this.editando) {
-                    res = await window.client.from('cursos').update(this.form).eq('id', this.form.id);
+                 // 2. Usamos 'datosAActualizar' (sin el ID) para el update
+                     res = await window.client.from('cursos').update(datosAActualizar).eq('id', this.form.id);
                 } else {
-                    const { id, ...nuevo } = this.form;
-                    res = await window.client.from('cursos').insert([nuevo]);
-                }
+                // 3. Para insertar también enviamos los datos sin el ID (Supabase lo auto-genera)
+                 res = await window.client.from('cursos').insert([datosAActualizar]);
+                 }
                 if(res.error) throw res.error;
                 alert('✨ Operación exitosa');
                 this.reset(); this.load();
-            } catch (err) { alert('Error: ' + err.message); }
+             } catch (err) { alert('Error: ' + err.message); }
         },
 
         async eliminar(id) {
@@ -158,7 +162,7 @@
         <div @click="cerrarDetalles()" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
         <div x-show="modalAbierto" x-transition class="bg-white w-full max-w-4xl rounded-[3rem] overflow-hidden shadow-2xl relative z-10 flex flex-col md:flex-row max-h-[90vh]">
             <div class="w-full md:w-1/2 h-64 md:h-auto bg-slate-200">
-                <img :src="cursoDetalle?.imagen_detalle || cursoDetalle?.nombre_imagen" class="w-full h-full object-cover">
+                <img :src="cursoDetalle?.imagen_detalle || cursoDetalle?.nombre_imagen" class="w-full h-full object-contain p-4">
             </div>
             <div class="w-full md:w-1/2 p-10 flex flex-col overflow-y-auto">
                 <button @click="cerrarDetalles()" class="absolute top-6 right-8 text-slate-400 hover:text-slate-900 text-2xl font-bold">×</button>
