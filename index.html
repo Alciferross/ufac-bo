@@ -198,7 +198,7 @@
                 <button @click="cerrarDetalles()" class="absolute top-6 right-8 text-slate-400 hover:text-black text-2xl">×</button>
                 <span class="text-blue-600 font-black text-[10px] uppercase mb-4" x-text="cursoDetalle?.area"></span>
                 <h3 class="text-3xl font-black text-slate-900 leading-tight mb-6" x-text="cursoDetalle?.titulo"></h3>
-                <p class="text-slate-600 mb-8" x-text="cursoDetalle?.descripcion"></p>
+                <p class="text-slate-600 mb-8 descripcion-texto" x-text="cursoDetalle?.descripcion"></p>
                 <div class="mt-auto pt-8 border-t">
                     <p class="text-4xl font-black mb-6" x-text="cursoDetalle?.precio + ' Bs'"></p>
                     <a :href="'https://wa.me/' + (cursoDetalle?.numero_contacto || '59179591057') + '?text=Info sobre: ' + cursoDetalle?.titulo" target="_blank" class="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-5 rounded-2xl font-bold transition-all">Consultar WhatsApp</a>

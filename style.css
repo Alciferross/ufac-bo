@@ -46,3 +46,7 @@ body {
 .btn-whatsapp-pulse {
     animation: pulse-green 2s infinite;
 }
+/* Esto respeta los saltos de línea y espacios del texto */
+.descripcion-texto {
+    white-space: pre-wrap;
+}
