@@ -17,11 +17,16 @@ body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
 /* --- TARJETAS PRINCIPALES (Look Premium) --- */
 .premium-card { 
     border-radius: 2.5rem !important; 
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    cursor: pointer;
+    transition: all 0.3s ease-in-out; 
     background: rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.premium-card:active {
+    transform: scale(0.98); /* Efecto de pulsación al hacer clic */
 }
 .premium-card:hover { 
     transform: translateY(-12px); 

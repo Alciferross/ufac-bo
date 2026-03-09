@@ -96,6 +96,8 @@
         <div class="flex justify-between items-center mb-8">
             <h2 class="text-2xl font-bold" x-text="editando ? '📝 Editando' : '🚀 Nuevo Programa'"></h2>
             <button @click="reset()" class="text-xs text-slate-400 hover:text-white uppercase">Limpiar formulario</button>
+            <button @click.stop="editando=true; form={...curso}; window.scrollTo({top:0, behavior:'smooth'})" ...>✏️</button>
+            <button @click.stop="eliminar(curso.id)" ...>🗑️</button>
         </div>
         <div class="grid md:grid-cols-2 gap-6">
             <input x-model="form.titulo" type="text" placeholder="Título del Curso" class="p-4 rounded-2xl bg-slate-800 border-none">
@@ -115,6 +117,7 @@
             <textarea x-model="form.descripcion" placeholder="Descripción del programa..." class="md:col-span-2 p-4 rounded-2xl bg-slate-800 h-24 text-white border-none"></textarea>
         </div>
         <button @click="save" :disabled="subiendo" class="w-full mt-8 py-5 rounded-2xl font-black text-xl bg-blue-600 hover:bg-blue-700 shadow-xl" x-text="subiendo ? 'Subiendo archivos...' : 'Guardar Cambios'"></button>
+        
     </section>
 
     <header class="py-24 px-8 text-center bg-[#2d32a4] text-white relative overflow-hidden mb-12">
