@@ -90,7 +90,6 @@
         <div x-show="adminMode" class="flex gap-2 animate-pulse">
             <input x-model="passInput" type="password" placeholder="Admin Key" class="bg-slate-100 rounded-xl px-4 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500">
         </div>
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Postgrado UPEA</span>
     </nav>
 
     <section x-show="adminMode && passInput === 'AlciUFAC2026'" class="max-w-5xl mx-auto my-6 p-10 bg-slate-900 rounded-[3rem] text-white shadow-2xl transition-all">
@@ -131,7 +130,7 @@
         
         <div x-show="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
             <template x-for="curso in cursos.filter(c => c.titulo.toLowerCase().includes(busqueda.toLowerCase()))" :key="curso.id">
-                <div class="premium-card overflow-hidden flex flex-col relative group">
+                <div @click="abrirDetalles(curso)" class="premium-card cursor-pointer overflow-hidden flex flex-col relative group">
                     <div x-show="adminMode && passInput === 'AlciUFAC2026'" class="absolute top-5 right-5 z-20 flex gap-2">
                         <button @click="editando=true; form={...curso}; window.scrollTo({top:0, behavior:'smooth'})" class="bg-white p-3 rounded-full shadow-lg hover:bg-blue-600 hover:text-white transition">✏️</button>
                         <button @click="eliminar(curso.id)" class="bg-white p-3 rounded-full shadow-lg hover:bg-red-600 hover:text-white transition">🗑️</button>
