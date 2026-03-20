@@ -18,69 +18,110 @@
 </head>
 <body class="bg-dinamico" 
     x-data="{ 
-        adminMode: false, editando: false, modalAbierto: false, 
-        passInput: '', cursos: [], loading: true, subiendo: false, busqueda: '',
-        form: { id: null, titulo: '', categoria: '', descripcion: '', precio: '', area: '', nombre_imagen: '', numero_contacto: '', imagen_detalle: '' },
-        cursoDetalle: null,
+    adminMode: false, editando: false, modalAbierto: false, 
+    passInput: '', cursos: [], cursosPasados: [], loading: true, subiendo: false, busqueda: '',
+    form: { id: null, titulo: '', categoria: '', descripcion: '', precio: '', area: '', nombre_imagen: '', numero_contacto: '', imagen_detalle: '', activo: true },
+    cursoDetalle: null,
 
-        async init() {
-            const URL = 'https://efoaddprubryweeuxaux.supabase.co'; 
-            const KEY = 'sb_publishable_ohTbTO2uHiKNIyKT2jiV5Q_x23rPc9v'; 
-            window.client = supabase.createClient(URL, KEY);
+    async init() {
+        const URL = 'https://efoaddprubryweeuxaux.supabase.co'; 
+        const KEY = 'sb_publishable_ohTbTO2uHiKNIyKT2jiV5Q_x23rPc9v'; 
+        window.client = supabase.createClient(URL, KEY);
+        this.load();
+    },
+
+    async load() {
+        this.loading = true;
+        const { data } = await window.client.from('cursos').select('*').order('id', { ascending: false });
+        const todos = data || [];
+        
+        // Separamos las listas según la columna 'activo' de Supabase
+        // Cambia estas líneas para que sean más flexibles
+        this.cursos = todos.filter(c => c.activo === true || c.activo === null || c.activo === undefined);
+        this.cursosPasados = todos.filter(c => c.activo === false);
+        
+        this.loading = false;
+    },
+
+    async cambiarEstado(curso) {
+        const nuevoEstado = !curso.activo;
+        const { error } = await window.client.from('cursos')
+            .update({ activo: nuevoEstado })
+            .eq('id', curso.id);
+        
+        if (!error) {
+            alert(nuevoEstado ? '🚀 Curso reactivado y movido a Ofertas' : '📂 Curso movido al Historial');
             this.load();
-        },
+        } else {
+            alert('Error al cambiar estado: ' + error.message);
+        }
+    },
 
-        async load() {
-            this.loading = true;
-            const { data } = await window.client.from('cursos').select('*').order('id', { ascending: false });
-            this.cursos = data || [];
-            this.loading = false;
-        },
+    async upload(e, targetField) {
+        const file = e.target.files[0];
+        if (!file) return;
+        this.subiendo = true;
+        const path = `portadas/${Date.now()}_${file.name.replace(/\s/g, '_')}`;
+        const { data } = await window.client.storage.from('imagenes').upload(path, file);
+        if (data) {
+            const { data: res } = window.client.storage.from('imagenes').getPublicUrl(path);
+            this.form[targetField] = res.publicUrl;
+            alert('Archivo listo ✅');
+        }
+        this.subiendo = false;
+    },
 
-        async upload(e, targetField) {
-            const file = e.target.files[0];
-            if (!file) return;
+    async save() {
+        if(!this.form.nombre_imagen) return alert('Debes subir al menos la imagen de portada');
+        try {
             this.subiendo = true;
-            const path = `portadas/${Date.now()}_${file.name.replace(/\s/g, '_')}`;
-            const { data } = await window.client.storage.from('imagenes').upload(path, file);
-            if (data) {
-                const { data: res } = window.client.storage.from('imagenes').getPublicUrl(path);
-                this.form[targetField] = res.publicUrl;
-                alert('Archivo listo ✅');
+            let res;
+            const { id, ...datosAActualizar } = this.form;
+
+            if (this.editando) {
+                res = await window.client.from('cursos').update(datosAActualizar).eq('id', id);
+            } else {
+                datosAActualizar.activo = true; 
+                res = await window.client.from('cursos').insert([datosAActualizar]);
             }
+
+            if(res.error) throw res.error;
+            
+            alert('✨ ¡Operación exitosa!');
+            this.reset(); 
+            await this.load();
+        } catch (err) { 
+            alert('Error: ' + err.message); 
+        } finally {
             this.subiendo = false;
-        },
+        }
+    },
 
-        async save() {
-                 if(!this.form.nombre_imagen) return alert('Debes subir al menos la imagen de portada');
-                try {
-                let res;
-                 // 1. Separamos el 'id' del resto del formulario
-                const { id, ...datosAActualizar } = this.form;
- 
-                if (this.editando) {
-                 // 2. Usamos 'datosAActualizar' (sin el ID) para el update
-                     res = await window.client.from('cursos').update(datosAActualizar).eq('id', this.form.id);
-                } else {
-                // 3. Para insertar también enviamos los datos sin el ID (Supabase lo auto-genera)
-                 res = await window.client.from('cursos').insert([datosAActualizar]);
-                 }
-                if(res.error) throw res.error;
-                alert('✨ Operación exitosa');
-                this.reset(); this.load();
-             } catch (err) { alert('Error: ' + err.message); }
-        },
-
-        async eliminar(id) {
-            if (confirm('¿Eliminar programa?')) {
-                const { error } = await window.client.from('cursos').delete().eq('id', id);
-                if (!error) this.load();
+    async eliminar(id) {
+        if (confirm('¿Estás seguro de eliminar este programa permanentemente?')) {
+            const { error } = await window.client.from('cursos').delete().eq('id', id);
+            if (!error) {
+                alert('Eliminado ✅');
+                this.load();
             }
-        },
+        }
+    },
 
-        abrirDetalles(curso) { this.cursoDetalle = curso; this.modalAbierto = true; document.body.style.overflow = 'hidden'; },
-        cerrarDetalles() { this.modalAbierto = false; document.body.style.overflow = 'auto'; },
-        reset() { this.form = { id: null, titulo: '', categoria: '', descripcion: '', precio: '', area: '', nombre_imagen: '', numero_contacto: '', imagen_detalle: '' }; this.editando = false; }
+    abrirDetalles(curso) { 
+        this.cursoDetalle = curso; 
+        this.modalAbierto = true; 
+        document.body.style.overflow = 'hidden'; 
+    },
+
+    cerrarDetalles() { 
+        this.modalAbierto = false; 
+        document.body.style.overflow = 'auto'; 
+    },
+
+    reset() { 
+        this.form = { id: null, titulo: '', categoria: '', descripcion: '', precio: '', area: '', nombre_imagen: '', numero_contacto: '', imagen_detalle: '', activo: true }; 
+        this.editando = false; 
+    }
     }">
 
     <nav class="bg-white/90 backdrop-blur-md py-4 px-10 flex justify-between items-center sticky top-0 z-50 shadow-sm">
@@ -88,41 +129,44 @@
             <h1 class="text-2xl font-black text-blue-700 uppercase tracking-tighter italic">UFAC<span class="text-slate-400">.bo</span></h1>
         </div>
         <div x-show="adminMode" class="flex gap-2 animate-pulse">
-            <input x-model="passInput" type="password" placeholder="Admin Key" class="bg-slate-100 rounded-xl px-4 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500">
+            <input x-model="passInput" type="password" placeholder="Admin Key" class="bg-slate-100 rounded-xl px-4 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500 text-slate-800">
         </div>
     </nav>
 
     <section x-show="adminMode && passInput === 'AlciUFAC2026'" class="max-w-5xl mx-auto my-6 p-10 bg-slate-900 rounded-[3rem] text-white shadow-2xl transition-all">
         <div class="flex justify-between items-center mb-8">
-            <h2 class="text-2xl font-bold" x-text="editando ? '📝 Editando' : '🚀 Nuevo Programa'"></h2>
-            <button @click="reset()" class="text-xs text-slate-400 hover:text-white uppercase">Limpiar formulario</button>
-            <button @click.stop="editando=true; form={...curso}; window.scrollTo({top:0, behavior:'smooth'})" ...>✏️</button>
-            <button @click.stop="eliminar(curso.id)" ...>🗑️</button>
+            <h2 class="text-2xl font-bold" x-text="editando ? '📝 Editando Programa' : '🚀 Nuevo Programa'"></h2>
+            <button @click="reset()" class="text-xs text-slate-400 hover:text-white uppercase border border-slate-700 px-4 py-2 rounded-xl">Limpiar Formulario / Cancelar</button>
         </div>
+
         <div class="grid md:grid-cols-2 gap-6">
-            <input x-model="form.titulo" type="text" placeholder="Título del Curso" class="p-4 rounded-2xl bg-slate-800 border-none">
-            <input x-model="form.area" type="text" placeholder="Área (Ej: Educación)" class="p-4 rounded-2xl bg-slate-800 border-none">
-            <input x-model="form.precio" type="text" placeholder="Precio Bs" class="p-4 rounded-2xl bg-slate-800 border-none">
-            <input x-model="form.numero_contacto" type="text" placeholder="WhatsApp (Ej: 59179591057)" class="p-4 rounded-2xl bg-slate-800 border-none">
+            <input x-model="form.titulo" type="text" placeholder="Título del Curso" class="p-4 rounded-2xl bg-slate-800 border-none text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            <input x-model="form.area" type="text" placeholder="Área (Ej: Educación)" class="p-4 rounded-2xl bg-slate-800 border-none text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            <input x-model="form.precio" type="text" placeholder="Precio Bs" class="p-4 rounded-2xl bg-slate-800 border-none text-white focus:ring-2 focus:ring-blue-500 outline-none">
+            <input x-model="form.numero_contacto" type="text" placeholder="WhatsApp (Ej: 59179591057)" class="p-4 rounded-2xl bg-slate-800 border-none text-white focus:ring-2 focus:ring-blue-500 outline-none">
             
             <div class="bg-slate-800 p-4 rounded-2xl border-2 border-dashed border-slate-700">
-                <label class="text-[10px] block mb-2 text-slate-400">PORTADA PRINCIPAL</label>
-                <input type="file" @change="upload($event, 'nombre_imagen')" class="text-xs">
+                <label class="text-[10px] block mb-2 text-slate-400 font-bold uppercase">Portada Principal</label>
+                <input type="file" @change="upload($event, 'nombre_imagen')" class="text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700">
             </div>
+
             <div class="bg-slate-800 p-4 rounded-2xl border-2 border-dashed border-slate-700">
-                <label class="text-[10px] block mb-2 text-slate-400">IMAGEN DETALLE (OPCIONAL)</label>
-                <input type="file" @change="upload($event, 'imagen_detalle')" class="text-xs">
+                <label class="text-[10px] block mb-2 text-slate-400 font-bold uppercase">Imagen Detalle (Opcional)</label>
+                <input type="file" @change="upload($event, 'imagen_detalle')" class="text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-600 file:text-white hover:file:bg-slate-700">
             </div>
             
-            <textarea x-model="form.descripcion" placeholder="Descripción del programa..." class="md:col-span-2 p-4 rounded-2xl bg-slate-800 h-24 text-white border-none"></textarea>
+            <textarea x-model="form.descripcion" placeholder="Descripción detallada del programa..." class="md:col-span-2 p-4 rounded-2xl bg-slate-800 h-32 text-white border-none focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
         </div>
-        <button @click="save" :disabled="subiendo" class="w-full mt-8 py-5 rounded-2xl font-black text-xl bg-blue-600 hover:bg-blue-700 shadow-xl" x-text="subiendo ? 'Subiendo archivos...' : 'Guardar Cambios'"></button>
-        
+
+        <button @click="save" :disabled="subiendo" 
+                class="w-full mt-8 py-5 rounded-3xl font-black text-xl bg-blue-600 hover:bg-blue-700 shadow-xl transition-all transform active:scale-95 disabled:bg-slate-700" 
+                x-text="subiendo ? '⏳ Subiendo archivos...' : (editando ? '✅ Actualizar Programa' : '🚀 Publicar Ahora')">
+        </button>
     </section>
 
     <header class="py-24 px-8 text-center bg-[#2d32a4] text-white relative overflow-hidden mb-12">
-        <h2 class="text-5xl md:text-7xl font-black mb-8 tracking-tighter uppercase leading-tight">UNIDAD DE FORMACIÓN</h2>
-        <h2 class="text-5xl md:text-7xl font-black mb-8 tracking-tighter uppercase leading-tight">ACADÉMICA CONTINUA</h2>
+        <h2 class="text-4xl md:text-7xl font-black mb-4 tracking-tighter uppercase leading-tight">UNIDAD DE FORMACIÓN</h2>
+        <h2 class="text-4xl md:text-7xl font-black mb-8 tracking-tighter uppercase leading-tight">ACADÉMICA CONTINUA</h2>
         <div class="max-w-xl mx-auto relative group">
             <input type="text" x-model="busqueda" placeholder="Buscar curso..." class="w-full py-5 px-10 rounded-full bg-white text-slate-800 shadow-2xl focus:outline-none text-xl font-medium">
             <span class="absolute right-8 top-5 text-2xl">🔍</span>
@@ -136,8 +180,9 @@
             <template x-for="curso in cursos.filter(c => c.titulo.toLowerCase().includes(busqueda.toLowerCase()))" :key="curso.id">
                 <div @click="abrirDetalles(curso)" class="premium-card cursor-pointer overflow-hidden flex flex-col relative group">
                     <div x-show="adminMode && passInput === 'AlciUFAC2026'" class="absolute top-5 right-5 z-20 flex gap-2">
-                        <button @click="editando=true; form={...curso}; window.scrollTo({top:0, behavior:'smooth'})" class="bg-white p-3 rounded-full shadow-lg hover:bg-blue-600 hover:text-white transition">✏️</button>
-                        <button @click="eliminar(curso.id)" class="bg-white p-3 rounded-full shadow-lg hover:bg-red-600 hover:text-white transition">🗑️</button>
+                        <button @click.stop="editando=true; form={...curso}; window.scrollTo({top:0, behavior:'smooth'})" class="bg-white p-3 rounded-full shadow-lg hover:bg-blue-600 hover:text-white transition">✏️</button>
+                        <button @click.stop="cambiarEstado(curso)" class="bg-white p-3 rounded-full shadow-lg hover:bg-amber-500 hover:text-white transition" title="Mover al Historial">📂</button>
+                        <button @click.stop="eliminar(curso.id)" class="bg-white p-3 rounded-full shadow-lg hover:bg-red-600 hover:text-white transition">🗑️</button>
                     </div>
 
                     <div class="relative h-64 overflow-hidden bg-slate-200">
@@ -151,7 +196,7 @@
                         <h4 class="text-2xl font-bold text-slate-800 leading-tight mb-8" x-text="curso.titulo"></h4>
                         <div class="mt-auto flex justify-between items-center pt-8 border-t border-slate-100">
                             <p class="text-4xl font-black text-slate-900" x-text="curso.precio + ' Bs'"></p>
-                            <button @click="abrirDetalles(curso)" class="text-blue-600 font-bold hover:underline">Ver más</button>
+                            <button class="text-blue-600 font-bold hover:underline">Ver más</button>
                         </div>
                     </div>
                 </div>
@@ -159,29 +204,55 @@
         </div>
     </main>
 
+    <section x-show="cursosPasados.length > 0" class="max-w-7xl mx-auto py-20 px-8 border-t border-slate-200">
+        <div class="mb-12">
+            <h3 class="text-3xl font-black text-slate-400 uppercase tracking-tighter italic">Cursos <span class="text-slate-300">Realizados</span></h3>
+            <p class="text-slate-400 text-sm">Programas académicos concluidos satisfactoriamente.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 opacity-70">
+            <template x-for="curso in cursosPasados" :key="curso.id">
+                <div @click="abrirDetalles(curso)" class="premium-card cursor-pointer overflow-hidden flex flex-col bg-white/50 shadow-sm border border-slate-100 grayscale hover:grayscale-0 transition-all duration-500 relative">
+                    <div x-show="adminMode && passInput === 'AlciUFAC2026'" class="absolute top-3 right-3 z-20 flex gap-2">
+                         <button @click.stop="cambiarEstado(curso)" class="bg-white p-2 rounded-full shadow-lg hover:bg-green-600 hover:text-white transition" title="Reactivar">🚀</button>
+                         <button @click.stop="eliminar(curso.id)" class="bg-white p-2 rounded-full shadow-lg hover:bg-red-600 hover:text-white transition">🗑️</button>
+                    </div>
+
+                    <div class="relative h-40 overflow-hidden">
+                        <img :src="curso.nombre_imagen" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center">
+                            <span class="bg-white/90 text-slate-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase">Finalizado</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h4 class="text-sm font-bold text-slate-600 leading-tight" x-text="curso.titulo"></h4>
+                        <p class="text-[10px] text-slate-400 mt-2" x-text="curso.area"></p>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </section>
+
     <footer class="bg-slate-900 text-white pt-20 pb-10 px-8 mt-20">
         <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 border-b border-slate-800 pb-12 text-left">
             <div class="space-y-6">
                 <h2 class="text-3xl font-black text-blue-500">UFAC<span class="text-white">.bo</span></h2>
-                <p class="text-slate-400">Unidad de Formación Académica Continua vinculada a la UPEA. Comprometidos con la excelencia y la especialización de los profesionales en Bolivia.</p>
+                <p class="text-slate-400">Unidad de Formación Académica Continua vinculada a la UPEA. Comprometidos con la excelencia y la especialización.</p>
                 <div class="flex gap-4">
                     <a href="https://www.facebook.com/share/17xYUiVpsG/" target="_blank" class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-blue-600 transition-all shadow-lg">
                         <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                     </a>
-                    <a href="https://www.instagram.com/ufac.oficial?utm_source=qr&igsh=a2EyZW04bTY2dDU=" target="_blank" class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-pink-600 transition-all shadow-lg">
+                    <a href="https://www.instagram.com/ufac.oficial" target="_blank" class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-pink-600 transition-all shadow-lg">
                         <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.266.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.267-.07-1.647-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c.796 0 1.441-.645 1.441-1.44s-.645-1.44-1.441-1.44-1.44.645-1.44 1.44.645 1.44 1.44 1.44z"/></svg>
                     </a>
-                    <a href="https://www.tiktok.com/@ufac.oficial?_r=1&_t=ZS-94DifCMMV0f" target="_blank" class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-black hover:ring-2 hover:ring-pink-500 transition-all shadow-lg text-white">
+                    <a href="https://www.tiktok.com/@ufac.oficial" target="_blank" class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center hover:bg-black hover:ring-2 hover:ring-pink-500 transition-all shadow-lg text-white">
                         <svg class="w-6 h-6 fill-white" viewBox="0 0 24 24"><path d="M12.525.02c1.31 0 2.591.215 3.794.608V4.697c-.682-.192-1.397-.289-2.126-.289-2.458 0-4.449 1.846-4.449 4.124v3.193h4.449v4.212h-4.449v7.461c0 2.122-1.856 3.842-4.143 3.842-2.288 0-4.144-1.72-4.144-3.842V9.332C1.457 4.185 5.612.02 10.74.02h1.785zM22.508 4.841c-1.353 0-2.536-.615-3.328-1.572-.34-.41-.613-.883-.807-1.398h-3.951v11.854c0 .883-.715 1.6-1.595 1.6-.88 0-1.594-.717-1.594-1.6V9.332h3.191V5.12h-7.336v11.812c0 2.872 2.33 5.201 5.201 5.201 2.871 0 5.201-2.329 5.201-5.201V6.632c1.018.898 2.372 1.441 3.856 1.441V4.841h1.162z"/></svg>
                     </a>
                 </div>
             </div>
             <div class="space-y-6">
-            </div>
-            <div class="space-y-6">
                 <h4 class="font-bold">Ubicación</h4>
                 <p class="text-slate-400">📍 Av. Juan Pablo II, Edificio Postgrado UPEA, El Alto.</p>
-                <p class="text-slate-400">⏰ Lun - Vie: 08:30 - 12:30 y 14:00 - 17:00</p>
                 <p class="text-blue-400 font-bold">📞 +591 79591057</p>
             </div>
         </div>

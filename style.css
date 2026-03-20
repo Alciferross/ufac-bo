@@ -120,4 +120,13 @@ body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
         right: 1.5rem !important;
         padding: 1rem !important;
     }
+
+    /* Estilo para los cursos del historial */
+    .grayscale {
+        filter: grayscale(100%);
+    }
+    .grayscale:hover {
+        filter: grayscale(0%);
+    }
+
 }
