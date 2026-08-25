@@ -232,14 +232,28 @@
         </div>
     </main>
 
-    <section x-show="cursosPasados.length > 0" class="max-w-7xl mx-auto py-20 px-8 border-t border-slate-200">
-        <div class="mb-12">
-            <h3 class="text-3xl font-black text-slate-400 uppercase tracking-tighter italic">Cursos <span class="text-slate-300">Realizados</span></h3>
-            <p class="text-slate-400 text-sm">Programas académicos concluidos satisfactoriamente.</p>
+   <!-- SECCIÓN CURSOS REALIZADOS (EXPANDIBLE / MINIMIZABLE) -->
+    <section x-data="{ expandido: false }" x-show="cursosPasados.length > 0" class="max-w-7xl mx-auto py-20 px-8 border-t border-slate-200">
+        
+        <!-- Encabezado con Botón Superior -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
+            <div>
+                <h3 class="text-3xl font-black text-slate-400 uppercase tracking-tighter italic">Cursos <span class="text-slate-300">Realizados</span></h3>
+                <p class="text-slate-400 text-sm">Programas académicos concluidos satisfactoriamente.</p>
+            </div>
+            
+            <!-- Botón de control superior -->
+            <button x-show="cursosPasados.length > 4" 
+                    @click="expandido = !expandido" 
+                    class="px-5 py-2.5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                <span x-text="expandido ? 'Minimizar' : 'Ver todos (' + cursosPasados.length + ')'"></span>
+                <span x-text="expandido ? '▲' : '▼'"></span>
+            </button>
         </div>
-
+        
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 opacity-70">
-            <template x-for="curso in cursosPasados" :key="curso.id">
+
+            <template x-for="curso in (expandido ? cursosPasados : cursosPasados.slice(0, 4))" :key="curso.id">
                 <div @click="abrirDetalles(curso)" class="premium-card cursor-pointer overflow-hidden flex flex-col bg-white/50 shadow-sm border border-slate-100 grayscale hover:grayscale-0 transition-all duration-500 relative">
                     <div x-show="adminMode && passInput === 'AlciUFAC2026'" class="absolute top-3 right-3 z-20 flex gap-2">
                          <button @click.stop="cambiarEstado(curso)" class="bg-white p-2 rounded-full shadow-lg hover:bg-green-600 hover:text-white transition" title="Reactivar">🚀</button>
@@ -258,6 +272,14 @@
                     </div>
                 </div>
             </template>
+        </div>
+        
+        <div x-show="cursosPasados.length > 4" class="mt-12 text-center">
+            <button @click="expandido = !expandido" 
+                    class="px-8 py-4 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold transition-all shadow-md inline-flex items-center gap-3 text-sm uppercase tracking-wider">
+                <span x-text="expandido ? 'Mostrar menos cursos' : 'Ver todos los cursos realizados (' + cursosPasados.length + ')'"></span>
+                <span class="text-lg" x-text="expandido ? '▲' : '▼'"></span>
+            </button>
         </div>
     </section>
 
